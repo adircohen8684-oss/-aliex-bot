@@ -70,8 +70,9 @@ def get_aliexpress_products(keyword, count=3):
     try:
         response = requests.get(url, headers=headers, params=params, timeout=15)
         data = response.json()
-        print(f"🔍 API Response: {data}")
-        items = data if isinstance(data, list) else []
+        print(f"🔍 API Response keys: {list(data.keys()) if isinstance(data, dict) else 'list'}")
+        items = data.get("products", {}).get("product", [])
+        print(f"📦 נמצאו {len(items)} פריטים")
         products = []
         for item in items[:count]:
             product = {
