@@ -1,4 +1,6 @@
-anthropic
-requests
-schedule
 flask
+gunicorn
+requests
+anthropic
+schedule
+sendgrid
