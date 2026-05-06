@@ -70,7 +70,6 @@ def get_aliexpress_products(keyword, count=3):
     try:
         response = requests.get(url, headers=headers, params=params, timeout=15)
         data = response.json()
-        print(f"🔍 API Response keys: {list(data.keys()) if isinstance(data, dict) else 'list'}")
         items = data.get("products", {}).get("product", [])
         print(f"📦 נמצאו {len(items)} פריטים")
         products = []
@@ -94,7 +93,7 @@ def generate_marketing_text(product):
     try:
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
         message = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-haiku-4-5-20251001",
             max_tokens=300,
             messages=[{"role": "user", "content": f"כתוב פוסט שיווקי קצר בעברית לקבוצת פייסבוק עבור: {product['title']}, מחיר: ${product['price']}, מקורי: ${product['original_price']}. 3-4 משפטים, אימוג'י, קריאה לפעולה. ללא לינק."}]
         )
