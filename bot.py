@@ -53,7 +53,7 @@ def health():
     return {"status": "ok", "pending": len(pending_posts)}
 
 def get_aliexpress_products(keyword, count=3):
-    url = "https://aliexpress-true-api.p.rapidapi.com/api/v3/get-products"
+    url = "https://aliexpress-true-api.p.rapidapi.com/api/v3/products"
     headers = {
         "X-RapidAPI-Key": RAPIDAPI_KEY,
         "X-RapidAPI-Host": "aliexpress-true-api.p.rapidapi.com"
@@ -64,7 +64,7 @@ def get_aliexpress_products(keyword, count=3):
         "page_size": str(count),
         "target_currency": "USD",
         "target_language": "EN",
-        "country": "IL",
+        "ship_to_country": "IL",
         "sort": "SALE_PRICE_ASC"
     }
     try:
@@ -99,13 +99,12 @@ def generate_marketing_text(product):
         )
         return message.content[0].text
     except Exception as e:
+        print(f"שגיאת Claude: {e}")
         return f"🔥 דיל מטורף! {product['title']}\n💰 רק ${product['price']}\n🛒 לחצו על הלינק!"
-
-def create_affiliate_link(product_url):
-    return product_url
 
 def send_approval_email(post_id, product, marketing_text, affiliate_link):
     if not SENDER_EMAIL or not SENDER_PASSWORD:
+        print("⚠️ אין פרטי מייל — מפרסם ישירות")
         return False
     try:
         approve_url = f"{BOT_URL}/approve/{post_id}"
@@ -189,10 +188,14 @@ def run_agent():
         return
     print(f"✅ נמצאו {len(products)} מוצרים")
     for i, product in enumerate(products, 1):
-        affiliate_link = create_affiliate_link(product["url"])
+        affiliate_link = product["url"]
         marketing_text = generate_marketing_text(product)
         post_id = str(uuid.uuid4())[:8]
-        post_data = {"product": product, "marketing_text": marketing_text, "affiliate_link": affiliate_link}
+        post_data = {
+            "product": product,
+            "marketing_text": marketing_text,
+            "affiliate_link": affiliate_link
+        }
         if send_approval_email(post_id, product, marketing_text, affiliate_link):
             pending_posts[post_id] = post_data
             print(f"📧 ממתין לאישור (ID: {post_id})")
