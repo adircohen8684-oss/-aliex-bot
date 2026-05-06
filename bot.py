@@ -15,12 +15,10 @@ RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 FACEBOOK_ACCESS_TOKEN = os.environ.get("FACEBOOK_ACCESS_TOKEN", "")
 FACEBOOK_USER_TOKEN = os.environ.get("FACEBOOK_USER_TOKEN", "")
-
 APPROVAL_EMAIL = os.environ.get("APPROVAL_EMAIL", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "")
 SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "")
 BOT_URL = os.environ.get("BOT_URL", "http://localhost:5000")
-
 FACEBOOK_GROUPS = os.environ.get("FACEBOOK_GROUPS", "").split(",")
 
 CATEGORIES = [
@@ -31,6 +29,7 @@ CATEGORIES = [
 
 category_index = 0
 pending_posts = {}
+bot_started = False
 
 app = Flask(__name__)
 
@@ -71,20 +70,19 @@ def get_aliexpress_products(keyword, count=3):
     try:
         response = requests.get(url, headers=headers, params=params, timeout=15)
         data = response.json()
+        print(f"🔍 API Response: {data}")
+        items = data if isinstance(data, list) else []
         products = []
-        items = data.get("result", {}).get("products", [])
-        if not items:
-            items = data.get("products", [])
         for item in items[:count]:
             product = {
-                "title": item.get("product_title", item.get("title", "")),
+                "title": item.get("product_title", ""),
                 "price": item.get("target_sale_price", item.get("sale_price", "")),
-                "original_price": item.get("original_price", item.get("target_original_price", "")),
-                "image": item.get("product_main_image_url", item.get("image_url", "")),
+                "original_price": item.get("target_original_price", item.get("original_price", "")),
+                "image": item.get("product_main_image_url", ""),
                 "product_id": item.get("product_id", ""),
-                "url": item.get("product_detail_url", f"https://www.aliexpress.com/item/{item.get('product_id', '')}.html")
+                "url": item.get("promotion_link", item.get("product_detail_url", ""))
             }
-            if product["product_id"] or product["title"]:
+            if product["title"]:
                 products.append(product)
         return products
     except Exception as e:
@@ -209,8 +207,16 @@ def run_scheduler():
         schedule.run_pending()
         time.sleep(60)
 
+def start_bot():
+    global bot_started
+    if not bot_started:
+        bot_started = True
+        print("🚀 AliX Hunters Bot מתחיל")
+        threading.Thread(target=run_agent, daemon=True).start()
+        threading.Thread(target=run_scheduler, daemon=True).start()
+
 if __name__ == "__main__":
-    print("🚀 AliX Hunters Bot מתחיל")
-    threading.Thread(target=run_agent).start()
-    threading.Thread(target=run_scheduler, daemon=True).start()
+    start_bot()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+else:
+    start_bot()
