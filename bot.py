@@ -91,7 +91,7 @@ def generate():
     try:
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
         msg = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=500,
             messages=[{"role":"user","content":f"אתה מומחה שיווק ישראלי. פרטי המוצר: {info}. קישור: {url}. כתוב פוסט שיווקי מושך בעברית לפייסבוק: שורה ראשונה חזקה, 3-4 משפטים עם אימוג'י, הדגש חיסכון, תחושת דחיפות, סיים עם 'לרכישה: {url}'. כתוב רק את הפוסט."}]
         )
@@ -101,4 +101,3 @@ def generate():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
