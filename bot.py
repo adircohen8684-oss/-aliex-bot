@@ -3,7 +3,7 @@ import anthropic
 from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(**name**)
-ANTHROPIC_API_KEY = os.environ.get(“ANTHROPIC_API_KEY”)
+ANTHROPIC_API_KEY = os.environ.get(ANTHROPIC_API_KEYa)
 
 HTML = “””
 
