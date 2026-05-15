@@ -12,7 +12,6 @@ def get_product_image(url):
         headers = {
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8",
         }
         session = requests.Session()
         r = session.get(url, headers=headers, timeout=15, allow_redirects=True)
@@ -22,7 +21,6 @@ def get_product_image(url):
             r'content="([^"]+)"\s+property="og:image"',
             r'"image"\s*:\s*"(https://ae\d+\.alicdn\.com[^"]+)"',
             r'src="(https://ae\d+\.alicdn\.com[^"]+\.jpg[^"]*)"',
-            r'"mainImage"\s*:\s*\{[^}]*"imageUrl"\s*:\s*"([^"]+)"',
         ]
         for pattern in patterns:
             match = re.search(pattern, html)
@@ -57,7 +55,6 @@ HTML = (
     ".copy-btn { margin-top:8px; width:100%; padding:10px; background:#28a745; border:none; border-radius:8px; color:#fff; font-size:0.95rem; cursor:pointer; font-family:Arial; }"
     ".loading { text-align:center; color:#f7931e; padding:20px; display:none; }"
     ".product-img { width:100%; max-width:300px; border-radius:8px; margin:10px auto 16px; display:block; }"
-    ".no-img { color:#888; font-size:0.85rem; margin-bottom:10px; text-align:center; }"
     "</style>"
     "</head>"
     "<body>"
@@ -105,7 +102,7 @@ HTML = (
     "      if (data.image) {"
     "        imgArea.innerHTML = \"<img src='\" + data.image + \"' class='product-img' />\";"
     "      } else {"
-    "        imgArea.innerHTML = \"<p class='no-img'>תמונה לא נמצאה - הוסף ידנית בפייסבוק</p>\";"
+    "        imgArea.innerHTML = '';"
     "      }"
     "      document.getElementById('result').style.display = 'block';"
     "    } else { alert('שגיאה, נסה שוב'); }"
@@ -139,24 +136,19 @@ def generate():
  
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
  
+    system = "אתה כותב פוסטים לפייסבוק בעברית. כתוב רק את טקסט הפוסט עצמו, ללא הסברים, ללא כותרות, ללא הנחיות."
+ 
     prompt = (
-        "אתה מנהל קבוצת פייסבוק ישראלית עם כ4600 חברים.\n"
-        "כתוב פוסט בעברית שנשמע כמו המלצה אישית ואמיתית, לא כמו פרסומת.\n\n"
-        "כללים:\n"
-        "- אל תכתוב מילים שיווקיות\n"
-        "- אל תיצור לחץ או דחיפות\n"
-        "- אל תכניס קישור לפוסט\n"
-        "- תתאר בעיה אמיתית שהמוצר פותר\n"
-        "- תציין למי זה מתאים ולמי פחות\n"
-        "- סיים במשפט: הלינק בתגובה הראשונה למי שרוצה לבדוק\n\n"
-        "פרטי המוצר:\n"
-        + info +
-        "\n\nכתוב רק את הפוסט, ללא הסברים."
+        "כתוב פוסט קצר ואישי בעברית על המוצר הבא, כאילו אתה חבר שמספר לחברים שלו על משהו שגילית.\n"
+        "הפוסט צריך להישמע טבעי ואמיתי, לא כמו פרסומת.\n"
+        "סיים במשפט: הלינק בתגובה הראשונה למי שרוצה לבדוק\n\n"
+        "המוצר: " + info
     )
  
     msg = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1000,
+        system=system,
         messages=[{"role": "user", "content": prompt}]
     )
  
@@ -171,5 +163,4 @@ def generate():
  
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
- 
  
