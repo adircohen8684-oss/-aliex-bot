@@ -160,14 +160,16 @@ def generate():
         messages=[{"role": "user", "content": prompt}]
     )
  
+    post_text = msg.content[0].text + "\n\n" + url
     comment = "זה הדגם שעליו דיברתי, כולל משלוח לישראל\n" + url
  
     return jsonify({
-        "post": msg.content[0].text,
+        "post": post_text,
         "comment": comment,
         "image": image_url
     })
  
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+ 
  
